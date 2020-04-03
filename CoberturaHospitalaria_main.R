@@ -25,61 +25,61 @@ getOption("osrm.server")
 #getOption("osrm.server")
 
 # Datos Hospitales ----
-#hospitals <- read_excel(path = "c:/Users/rbonilla/Downloads/NearestHospital/kzp17_daten.xlsx", sheet = "KZ2017_KZP17")
-hospitals <- read_csv("C:/Users/rbonilla/Downloads/NearestHospital/Registro_Especial_de_Prestadores_de_Servicios_de_Salud.csv", 
+#hospitales <- read_excel(path = "c:/Users/rbonilla/Downloads/NearestHospital/kzp17_daten.xlsx", sheet = "KZ2017_KZP17")
+hospitales <- read_csv("C:/Users/rbonilla/Downloads/NearestHospital/Registro_Especial_de_Prestadores_de_Servicios_de_Salud.csv", 
                                                                                 locale = locale(asciify = TRUE))
 # Filtro Bogota
-hospitals <- hospitals %>% filter(nompio == "BOGOTÁ")
+hospitales <- hospitales %>% filter(nompio == "BOGOTÁ")
 
 # Nombres Direcciones
-hospitals <- hospitals %>% mutate_if(is.character, ~toupper(stri_trans_general(str = ., id = "ASCII-Latin")))
+hospitales <- hospitales %>% mutate_if(is.character, ~toupper(stri_trans_general(str = ., id = "ASCII-Latin")))
 
-hospitals$direccion <- gsub(pattern = "[.]", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = " NO ", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "N°", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "Nº", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "Nª", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "#", replacement = " ", x = hospitals$direccion)
-
-
-
-hospitals$direccion <- gsub(pattern = "CLL ", replacement = "CALLE ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "AV ", replacement = "AVENIDA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "KRA ", replacement = "CARRERA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "KR ", replacement = "CARRERA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "AK ", replacement = "AVENIDA CARRERA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "AC ", replacement = "AVENIDA CALLE ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "CRA ", replacement = "CARRERA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "CR ", replacement = "CARRERA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "CL ", replacement = "CALLE ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "TV ", replacement = "TRANSVERSAL ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "TRV ", replacement = "TRANSVERSAL ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "TRANV ", replacement = "TRANSVERSAL ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "TRANSV ", replacement = "TRANSVERSAL ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "DG ", replacement = "DIAGONAL ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "^K ", replacement = "CARRERA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "NUM ", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "NUMERO ", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "AUTO ", replacement = "AUTOPISTA ", x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = "AUTOP N ", replacement = "AUTOPISTA NORTE ", x = hospitals$direccion)
+hospitales$direccion <- gsub(pattern = "[.]", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = " NO ", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "N°", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "Nº", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "Nª", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "#", replacement = " ", x = hospitales$direccion)
 
 
-hospitals$direccion <-gsub(pattern = "\\s*\\([^\\)]+\\)",replacement = " ",x = hospitals$direccion)
-hospitals$direccion <- gsub(pattern = " OF.*| CN.*| CON.*| EDF.*| EDIF.*| LOC.*| PIS.*| ED.*| TO.*| BARR.*| CS.*| AP.*| IN.*| PI.*| Y .*| LC.*| PSO.*| P .*| P-.*| SEGUNDO.*| PLA.*| PRIM.*| 1ER.*| DENTRO.*| ENTRA.*| BODEG.*| SALA.*| CENTRO COM.*| DEPART.*| CASA.*| CC.*",
-                            replacement = "", x = hospitals$direccion)
 
-hospitals$direccion <- gsub(pattern = "-", replacement = " ", x = hospitals$direccion)
-hospitals$direccion <- str_squish(string = hospitals$direccion)
+hospitales$direccion <- gsub(pattern = "CLL ", replacement = "CALLE ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "AV ", replacement = "AVENIDA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "KRA ", replacement = "CARRERA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "KR ", replacement = "CARRERA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "AK ", replacement = "AVENIDA CARRERA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "AC ", replacement = "AVENIDA CALLE ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "CRA ", replacement = "CARRERA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "CR ", replacement = "CARRERA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "CL ", replacement = "CALLE ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "TV ", replacement = "TRANSVERSAL ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "TRV ", replacement = "TRANSVERSAL ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "TRANV ", replacement = "TRANSVERSAL ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "TRANSV ", replacement = "TRANSVERSAL ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "DG ", replacement = "DIAGONAL ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "^K ", replacement = "CARRERA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "NUM ", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "NUMERO ", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "AUTO ", replacement = "AUTOPISTA ", x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = "AUTOP N ", replacement = "AUTOPISTA NORTE ", x = hospitales$direccion)
 
-emergency_hospitals <- hospitals %>% filter(nchar(direccion)>5) %>% dplyr::select(nombre, direccion, telefono, email, najunombre, ese, nitsnit)
-emergency_hospitals$direccion <- paste(str_to_title(hospitals$direccion) , " Bogota, COLOMBIA", sep = "")
 
-# three random hospitals
+hospitales$direccion <-gsub(pattern = "\\s*\\([^\\)]+\\)",replacement = " ",x = hospitales$direccion)
+hospitales$direccion <- gsub(pattern = " OF.*| CN.*| CON.*| EDF.*| EDIF.*| LOC.*| PIS.*| ED.*| TO.*| BARR.*| CS.*| AP.*| IN.*| PI.*| Y .*| LC.*| PSO.*| P .*| P-.*| SEGUNDO.*| PLA.*| PRIM.*| 1ER.*| DENTRO.*| ENTRA.*| BODEG.*| SALA.*| CENTRO COM.*| DEPART.*| CASA.*| CC.*",
+                            replacement = "", x = hospitales$direccion)
+
+hospitales$direccion <- gsub(pattern = "-", replacement = " ", x = hospitales$direccion)
+hospitales$direccion <- str_squish(string = hospitales$direccion)
+
+emergency_hospitales <- hospitales %>% filter(nchar(direccion)>5) %>% dplyr::select(nombre, direccion, telefono, email, najunombre, ese, nitsnit)
+emergency_hospitales$direccion <- paste(str_to_title(hospitales$direccion) , " Bogota, COLOMBIA", sep = "")
+
+# three random hospitales
 set.seed(33)
-sample_n(emergency_hospitals, 3)
+sample_n(emergency_hospitales, 3)
 
-# number of hospitals
-nrow(emergency_hospitals)
+# number of hospitales
+nrow(emergency_hospitales)
 
 # HereR geocode
 
@@ -91,30 +91,30 @@ nrow(emergency_hospitals)
 
 
 # RUN geocode
-#emergency_hospitals_geocoded <- geocode(addresses = emergency_hospitals$direccion)
+#emergency_hospitales_geocoded <- geocode(addresses = emergency_hospitales$direccion)
 
 
 # WRITE
-#emergency_hospitals_geocoded %>% write_rds(path = "emergency_hospitals_geocoded_BOGOTA.RDS")
+#emergency_hospitales_geocoded %>% write_rds(path = "emergency_hospitales_geocoded_BOGOTA.RDS")
 
 # READ
-emergency_hospitals_geocoded <- read_rds(path = "emergency_hospitals_geocoded_BOGOTA.RDS")
+emergency_hospitales_geocoded <- read_rds(path = "emergency_hospitales_geocoded_BOGOTA.RDS")
 
 # crear LONG LAT ----
-dfCoordinates <- data.frame(st_coordinates(x = emergency_hospitals_geocoded), stringsAsFactors = F)
+dfCoordinates <- data.frame(st_coordinates(x = emergency_hospitales_geocoded), stringsAsFactors = F)
 names(dfCoordinates) <- c("lon", "lat")
-emergency_hospitals_geocoded <- emergency_hospitals_geocoded %>% bind_cols(dfCoordinates)
+emergency_hospitales_geocoded <- emergency_hospitales_geocoded %>% bind_cols(dfCoordinates)
 
 
 # El archivo original tiene la Istitucion pero el encoded la posicion se pega por id ----
-emergency_hospitals$id <- as.numeric(1:nrow(emergency_hospitals))
+emergency_hospitales$id <- as.numeric(1:nrow(emergency_hospitales))
 
-emergency_hospitals_geocoded <- left_join(x = emergency_hospitals_geocoded,
-                                          y = dplyr::select(emergency_hospitals, -direccion),
+emergency_hospitales_geocoded <- left_join(x = emergency_hospitales_geocoded,
+                                          y = dplyr::select(emergency_hospitales, -direccion),
                                           by = "id")
 
 # Filtro "HOSPITAL" ----
-emergency_hospitals_geocoded <- emergency_hospitals_geocoded %>% 
+emergency_hospitales_geocoded <- emergency_hospitales_geocoded %>% 
   filter(grepl(pattern = "HOSPITAL|CLINICA|UNIDAD", x = nombre)) %>%
   filter(!grepl(pattern = "ODON", x = nombre))
   #filter(!grepl(pattern = "MAIL", x = email))
@@ -128,12 +128,12 @@ icons <- iconList(
 basicmap <- leaflet() %>% 
   #addProviderTiles(providers$CartoDB.Positron) %>%
   addProviderTiles(providers$OpenStreetMap) %>% 
-  addMarkers(data = emergency_hospitals_geocoded,
+  addMarkers(data = emergency_hospitales_geocoded,
              lng = ~lon, lat = ~lat, popup = ~nombre,
              group = "IPS", icon = icons["hospital"])
 
 basicmap %>% 
-  addLayersControl(overlayGroups = c("Hospitals"))
+  addLayersControl(overlayGroups = c("hospitales"))
 
 # First, let’s define the extremes that we want the points to be in, ----
 # here the extremes of Switzerland. Those come from Wikipedia.
@@ -153,7 +153,7 @@ randompts <- tibble(id=1:n,
 basicmap %>% 
   addCircleMarkers(data = randompts, lng = ~lon, lat = ~lat, color = "red", radius = 1,
                    group = "Random Points") %>% 
-  addLayersControl(overlayGroups = c("Hospitals", "Random Points"))
+  addLayersControl(overlayGroups = c("hospitales", "Random Points"))
 
 # OSRM server we use osrm::osrmTable(src, dst) ----
 # Note also that we need to input data frames with the columns id/lon/lat. Tibbles would not work.
@@ -161,12 +161,12 @@ basicmap %>%
 randompoints_df <- randompts %>% 
   as.data.frame()
 
-hospitals_df <- emergency_hospitals_geocoded %>% 
+hospitales_df <- emergency_hospitales_geocoded %>% 
   as.data.frame() %>%
   dplyr::select(id = nombre, lon, lat)
 
 t0 <- Sys.time()
-distancetable <- osrmTable(src = randompoints_df, dst = hospitals_df)
+distancetable <- osrmTable(src = randompoints_df, dst = hospitales_df)
 
 Sys.time() - t0
 
@@ -184,7 +184,7 @@ basicmap %>%
   addCircleMarkers(data = mindistances, lng = ~lon, lat = ~lat, radius = 2,
                    color = ~binpal(mintime), popup = ~mintime_str,
                    group = "Driving times") %>% 
-  addLayersControl(overlayGroups = c("Hospitals", "Driving times"))
+  addLayersControl(overlayGroups = c("hospitales", "Driving times"))
 
 
 # Therefore we just loop over smaller sized requests ----
@@ -203,15 +203,15 @@ for (r in 1:nruns) {
   
   randompoints_df <- randompts %>% 
     as.data.frame()
-  hospitals_df <- emergency_hospitals_geocoded %>% 
+  hospitales_df <- emergency_hospitales_geocoded %>% 
     as.data.frame() %>%
     dplyr::select(id = nombre, lon, lat)
   
   # request OSRM server
   t0 <- Sys.time()
   
-  distancetable <- osrmTable(src = randompoints_df, dst = hospitals_df)
-  #distancetable <- osrmTable(src = randompoints_df, dst = hospitals_df)
+  distancetable <- osrmTable(src = randompoints_df, dst = hospitales_df)
+  #distancetable <- osrmTable(src = randompoints_df, dst = hospitales_df)
   
   rrt <- as.numeric(Sys.time() - t0, units = "secs") %>% round(3)
   
@@ -226,7 +226,7 @@ for (r in 1:nruns) {
 
 # Let’s remove duplicates and save ---- 
 mindistances <- bind_rows(mindistances, 
-                          hospitals_df %>% 
+                          hospitales_df %>% 
                             dplyr::select(lon, lat) %>% 
                             mutate(mintime = 0, mintime_str = "0"))
 
@@ -259,8 +259,8 @@ basicmap %>%
                    opacity = 0.8) %>%
   addLegend(data = mindistances, pal = binpal, values = ~mintime, group = "Driving times",
             title = "Time in min to the closest hospital") %>% 
-  addLayersControl(overlayGroups = c("Hospitals", "Driving times")) %>% 
-  hideGroup("Hospitals")
+  addLayersControl(overlayGroups = c("hospitales", "Driving times")) %>% 
+  hideGroup("hospitales")
 
 
 # The gridRes argument defines the raster resolution.
@@ -296,11 +296,11 @@ basicmap %>%
   addRasterImage(minraster_shaped, group = "Driving times", opacity = 0.8,
                  colors = binpal) %>% 
   
-  addLayersControl(overlayGroups = c("Hospitals", "Driving times")) %>%
+  addLayersControl(overlayGroups = c("hospitales", "Driving times")) %>%
   addLegend(data = mindistances, pal = binpal, values = ~mintime, group = "Driving times",
             title = "Time in min to the closest hospital") %>% 
-  addLayersControl(overlayGroups = c("Hospitals", "Driving times")) %>% 
-  hideGroup("Hospitals") %>%
+  addLayersControl(overlayGroups = c("hospitales", "Driving times")) %>% 
+  hideGroup("hospitales") %>%
   addCircleMarkers(data = mindistances, lng = ~lon, lat = ~lat, radius = 5,
                    color = ~binpal(mintime), popup = ~mintime_str,
                    group = "Driving times",
@@ -353,7 +353,7 @@ bm +
                aes(x = long, y = lat, group = group, fill = var1.pred, alpha = var1.pred), 
                # alpha = 0.8, 
                size = 0) + 
-  geom_point(data = hospitals_df, aes(x = lon, y = lat), color = "blue", alpha = 0.9) +
+  geom_point(data = hospitales_df, aes(x = lon, y = lat), color = "blue", alpha = 0.9) +
   geom_label(data = swisscities, aes(x = long, y = lat, label = name), size = 3) +
   scale_fill_gradient(low = "white", high = "red") +
   scale_alpha_continuous(guide = "none", range = c(0.1,1)) +
