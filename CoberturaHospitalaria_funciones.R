@@ -17,7 +17,7 @@ library(rgdal)
 #library(sp)
 
 # Interpolation ----
-interpolateSurface <- function(data, gridRes = 500){
+interpolateSurface <- function(data, gridRes = 500, idp = 1){
   
   # Make new dataset, that will be spatial - sp:: class
   data_sp <- data %>% as.data.frame()
@@ -34,13 +34,7 @@ interpolateSurface <- function(data, gridRes = 500){
   data_sp_mp <- spTransform(data_sp, CRSobj = "+init=epsg:3857")
   
   # Bounding box, resolution and grid for interpolation
-  boxx = data_sp_mp@bbox
-  deltaX = as.integer((boxx[1,2] - boxx[1,1]) + 1.5)
-  deltaY = as.integer((boxx[2,2] - boxx[2,1]) + 1.5)
-  gridSizeX = deltaX / gridRes
-  gridSizeY = deltaY / gridRes
-  grd = GridTopology(boxx[,1], c(gridRes,gridRes), c(gridSizeX,gridSizeY))
-  pts = SpatialPoints(coordinates(grd))
+  pts = spsample(x = spTransform(ciudad, CRSobj = "+init=epsg:3857"), type = "regular", n = 10000)
   proj4string(pts) <- crs("+init=epsg:3857")
   
   # Interpolate the grid cells Nearest neighbour
@@ -51,7 +45,7 @@ interpolateSurface <- function(data, gridRes = 500){
   gs <- gstat(formula = mintime~1, 
               locations = data_sp_mp, 
               nmax = 100, 
-              set = list(idp = 0))
+              set = list(idp = idp))
   nn <- interpolate(r.raster, gs)
   
   # Result rasters - surfaces
@@ -74,8 +68,48 @@ ScaleFunction <- function(x, L = 1, k = 1, x0 = 0){
   return(x+1)
 }
 
-#ScaleFunction(1, x0 = 10)
+#ScaleFunction(20, k = 0.05)
 
 
 # Estandarizacion Direcciones ----
-
+EstandarizarDirecciones <- function(direcciones){
+ 
+  direcciones <- toupper(stri_trans_general(str = direcciones, id = "ASCII-Latin"))
+  
+  direcciones <- gsub(pattern = "[.]", replacement = " ", x = direcciones)
+  direcciones <- gsub(pattern = " NO ", replacement = " ", x = direcciones)
+  direcciones <- gsub(pattern = "N°", replacement = " ", x = direcciones)
+  direcciones <- gsub(pattern = "Nº", replacement = " ", x = direcciones)
+  direcciones <- gsub(pattern = "Nª", replacement = " ", x = direcciones)
+  direcciones <- gsub(pattern = "#", replacement = " ", x = direcciones)
+  
+  direcciones <- gsub(pattern = "CLL ", replacement = "CALLE ", x = direcciones)
+  direcciones <- gsub(pattern = "AV ", replacement = "AVENIDA ", x = direcciones)
+  direcciones <- gsub(pattern = "KRA ", replacement = "CARRERA ", x = direcciones)
+  direcciones <- gsub(pattern = "KR ", replacement = "CARRERA ", x = direcciones)
+  direcciones <- gsub(pattern = "AK ", replacement = "AVENIDA CARRERA ", x = direcciones)
+  direcciones <- gsub(pattern = "AC ", replacement = "AVENIDA CALLE ", x = direcciones)
+  direcciones <- gsub(pattern = "CRA ", replacement = "CARRERA ", x = direcciones)
+  direcciones <- gsub(pattern = "CR ", replacement = "CARRERA ", x = direcciones)
+  direcciones <- gsub(pattern = "CL ", replacement = "CALLE ", x = direcciones)
+  direcciones <- gsub(pattern = "TV ", replacement = "TRANSVERSAL ", x = direcciones)
+  direcciones <- gsub(pattern = "TRV ", replacement = "TRANSVERSAL ", x = direcciones)
+  direcciones <- gsub(pattern = "TRANV ", replacement = "TRANSVERSAL ", x = direcciones)
+  direcciones <- gsub(pattern = "TRANSV ", replacement = "TRANSVERSAL ", x = direcciones)
+  direcciones <- gsub(pattern = "DG ", replacement = "DIAGONAL ", x = direcciones)
+  direcciones <- gsub(pattern = "^K ", replacement = "CARRERA ", x = direcciones)
+  direcciones <- gsub(pattern = "NUM ", replacement = " ", x = direcciones)
+  direcciones <- gsub(pattern = "NUMERO ", replacement = " ", x = direcciones)
+  direcciones <- gsub(pattern = "AUTO ", replacement = "AUTOPISTA ", x = direcciones)
+  direcciones <- gsub(pattern = "AUTOP N ", replacement = "AUTOPISTA NORTE ", x = direcciones)
+  
+  
+  direcciones <-gsub(pattern = "\\s*\\([^\\)]+\\)",replacement = " ",x = direcciones)
+  direcciones <- gsub(pattern = " OF.*| CN.*| CON.*| EDF.*| EDIF.*| LOC.*| PIS.*| ED.*| TO.*| BARR.*| CS.*| AP.*| IN.*| PI.*| Y .*| LC.*| PSO.*| P .*| P-.*| SEGUNDO.*| PLA.*| PRIM.*| 1ER.*| DENTRO.*| ENTRA.*| BODEG.*| SALA.*| CENTRO COM.*| DEPART.*| CASA.*| CC.*",
+                               replacement = "", x = direcciones)
+  
+  direcciones <- gsub(pattern = "-", replacement = " ", x = direcciones)
+  direcciones <- str_squish(string = direcciones)
+  
+  return(direcciones)
+}
