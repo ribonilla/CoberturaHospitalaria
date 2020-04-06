@@ -30,24 +30,37 @@ set_key("649v2eOmWyQoDCurYqPiKjhMgjarEbS70-drf7uDH3A")
 #hospitales <- read_excel(path = "c:/Users/rbonilla/Downloads/NearestHospital/kzp17_daten.xlsx", sheet = "KZ2017_KZP17")
 hospitales <- read_csv("C:/Users/rbonilla/Downloads/NearestHospital/Registro_Especial_de_Prestadores_de_Servicios_de_Salud.csv", 
                                                                                 locale = locale(asciify = TRUE))
-# Filtro por ciudad
-hospitales <- hospitales %>% filter(nompio == "CALI")
+
+# NombreCiudad ----
+NombreCiudad = "BOGOTÁ"
+
+# Filtro por NombreCiudad
+hospitales <- hospitales %>% filter(nompio == NombreCiudad)
 
 # Estandarizacion de strings
 hospitales <- hospitales %>% mutate_if(is.character, ~toupper(stri_trans_general(str = ., id = "ASCII-Latin")))
 # Estandarizar direcciones
+test <- data.frame(dir00 = hospitales$direccion)
 hospitales$direccion <- EstandarizarDirecciones(direcciones = hospitales$direccion)
+test <- test %>% mutate(dir01 = hospitales$direccion)
+
 
 # se filtran las direcciones que se buscan y se ajusta la ortografia para llamar a osrm
 hospitales_Seleccionados <- hospitales %>% filter(nchar(direccion)>5) %>% dplyr::select(nombre, direccion, telefono, email, najunombre, ese, nitsnit)
-hospitales_Seleccionados$direccion <- paste(str_to_title(hospitales_Seleccionados$direccion) , ", Cali Valle, COLOMBIA", sep = "")
+
+if(grepl(pattern = "CALI", x = NombreCiudad)){
+  hospitales_Seleccionados$direccion <- paste(str_to_title(hospitales_Seleccionados$direccion) , ", Cali Valle, COLOMBIA", sep = "")
+}else{
+  hospitales_Seleccionados$direccion <- paste(str_to_title(hospitales_Seleccionados$direccion) , ", Bogota, COLOMBIA", sep = "")
+}
 
 # Ejemplo de Hospitales
 set.seed(33)
-sample_n(emergency_hospitales, 3)
+sample_n(hospitales_Seleccionados, 3)
 
 # HereR geocode
 #geocode("Calle 52 71d 37, Bogota, COLOMBIA")
+#geocode(c("TRANSVERSAL 60 115 58, Bogota, COLOMBIA", "TRANSVERSAL 3 49-00, Bogota, COLOMBIA"))
 
 # RUN geocode
 # hospitales_Seleccionados_geocoded <- geocode(hospitales_Seleccionados$direccion)
@@ -57,9 +70,11 @@ sample_n(emergency_hospitales, 3)
 #hospitales_Seleccionados_geocoded %>% write_rds(path = "hospitales_Seleccionados_geocoded_CALI.RDS")
 
 # READ
-#hospitales_Seleccionados_geocoded <- read_rds(path = "hospitales_Seleccionados_geocoded_BOGOTA.RDS")
-hospitales_Seleccionados_geocoded <- read_rds(path = "data/backupRDS/emergency_hospitals_geocoded_CALI.RDS")
-
+if(grepl(pattern = "CALI", x = NombreCiudad)){
+  hospitales_Seleccionados_geocoded <- read_rds(path = "data/backupRDS/emergency_hospitals_geocoded_CALI.RDS")
+}else{
+  hospitales_Seleccionados_geocoded <- read_rds(path = "data/backupRDS/emergency_hospitals_geocoded_BOGOTA.RDS")
+}
 
 # crear LONG LAT ----
 dfCoordinates <- data.frame(st_coordinates(x = hospitales_Seleccionados_geocoded), stringsAsFactors = F)
@@ -98,49 +113,55 @@ basicmap %>%
 # First, let’s define the extremes that we want the points to be in, ----
 # here the extremes of Switzerland. Those come from Wikipedia.
 
-# ciudad <- shapefile(x = "locashp_BOGOTA/Loca.shp")
-# ciudad <- ciudad %>% subset(!(LocNombre %in% c("SUMAPAZ", "USME", "CIUDAD BOLIVAR")))
+# READ
+if(grepl(pattern = "CALI", x = NombreCiudad)){
+  ciudad <- shapefile(x = "data/mc_comunas_Cali/mc_comunas.shp")
+  ciudad_t <- spTransform(ciudad, CRSobj = "+init=epsg:4326")
+}else{
+  ciudad <- shapefile(x = "data/locashp_BOGOTA/Loca.shp/")
+  ciudad <- ciudad %>% subset(!(LocNombre %in% c("SUMAPAZ", "USME", "CIUDAD BOLIVAR")))
+}
 
-ciudad <- shapefile(x = "data/mc_comunas_Cali/mc_comunas.shp")
-ciudad_t <- spTransform(ciudad, CRSobj = "+init=epsg:4326")
 
-XYMinMax <- bbox(ciudad_t)
-
-latmin = XYMinMax[2,1]
-latmax = XYMinMax[2,2]
-lonmin = XYMinMax[1,1]
-lonmax = XYMinMax[1,2]
+# XYMinMax <- bbox(ciudad_t)
+# 
+# latmin = XYMinMax[2,1]
+# latmax = XYMinMax[2,2]
+# lonmin = XYMinMax[1,1]
+# lonmax = XYMinMax[1,2]
 
 # Therefore we just loop over smaller sized requests ----
 # A total of 10’000 points would be great (100 requests at 100 each).
 
+# Puntos finales
 hospitals_df <- hospitales_Seleccionados_geocoded %>% 
   as.data.frame() %>%
   dplyr::select(id = nombre, lon, lat)
 
-nmax <- 10000
-intervals <- 200
+# Puntos iniciales
+nmax <- 1000
+intervals <- round(nmax/50)
 
-xsp = spTransform(ciudad, CRSobj = "+init=epsg:4326")
-spatialP <- SpatialPoints(coords = t(bbox(xsp)))
+# Random Seed
+set.seed(455)
 
-#pts = spsample(x = spatialP, type = "regular", n = nmax)
+# Seleccion de los puntos sobre el rectangulo no sobre la ciudad
+# xsp = spTransform(ciudad, CRSobj = "+init=epsg:4326")
+# spatialP <- SpatialPoints(coords = t(bbox(xsp)))
+# pts = spsample(x = spatialP, type = "regular", n = nmax)
+
 pts = spsample(x = spTransform(ciudad, CRSobj = "+init=epsg:4326"), type = "random", n = nmax)
-
 pts1 = coordinates(pts)
 
 randompts_df <- data.frame(id=1:nrow(pts1),
                            lon = pts1[,1],
                            lat = pts1[,2])
 
-# Random Seed
-set.seed(455)
 
 # Se parte los valores en grupos mas pequeñospara llamar al servidor osrm
 kFolds <- createFolds(y = randompts_df$id, k = intervals)
 
 mindistances = data.frame()
-
 fCalc <- function(x) min(x, na.rm = T)
 
 for (id in 1:length(kFolds)) {

@@ -102,13 +102,24 @@ EstandarizarDirecciones <- function(direcciones){
   direcciones <- gsub(pattern = "NUMERO ", replacement = " ", x = direcciones)
   direcciones <- gsub(pattern = "AUTO ", replacement = "AUTOPISTA ", x = direcciones)
   direcciones <- gsub(pattern = "AUTOP N ", replacement = "AUTOPISTA NORTE ", x = direcciones)
+  direcciones <- gsub(pattern = "SUR", replacement = " SUR ", x = direcciones)
   
-  
+  # Quitar parentesis y contenido
   direcciones <-gsub(pattern = "\\s*\\([^\\)]+\\)",replacement = " ",x = direcciones)
-  direcciones <- gsub(pattern = " OF.*| CN.*| CON.*| EDF.*| EDIF.*| LOC.*| PIS.*| ED.*| TO.*| BARR.*| CS.*| AP.*| IN.*| PI.*| Y .*| LC.*| PSO.*| P .*| P-.*| SEGUNDO.*| PLA.*| PRIM.*| 1ER.*| DENTRO.*| ENTRA.*| BODEG.*| SALA.*| CENTRO COM.*| DEPART.*| CASA.*| CC.*",
+  # Quitar abreviaturas
+  direcciones <- gsub(pattern = " OF.*| CN.*| CON.*| EDF.*| EDIF.*| LOC.*| PIS.*| ED.*| TO.*| BARR.*| CS.*| AP.*| IN.*| PI.*| Y .*| LC.*| PSO.*| P .*| P-.*| SEGUNDO.*| PLA.*| PRIMER .*| 1ER.*| DENTRO.*| ENTRA.*| BODEG.*| SALA.*| CENTRO COM.*| DEPART.*| CASA.*| CC.*",
                                replacement = "", x = direcciones)
   
   direcciones <- gsub(pattern = "-", replacement = " ", x = direcciones)
+  
+  # Pegar la letra al numero en la dirección ej: CALLE 3 B 98 15 por: CALLE 3B 98 15
+  direcciones <- gsub(pattern = " ([A-Z]) ", replacement = "\\1 ", x = direcciones)
+  
+  # POner el guion del ultimo numero
+  direcciones <- gsub(pattern = "(^.*) ([0-9]{1,2})(.*)$", replacement = "\\1-\\2\\3", x = direcciones)
+  
+  
+  # Quitar espacio a dicionales
   direcciones <- str_squish(string = direcciones)
   
   return(direcciones)
