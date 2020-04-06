@@ -51,7 +51,7 @@ hospitales_Seleccionados <- hospitales %>% filter(nchar(direccion)>5) %>% dplyr:
 if(grepl(pattern = "CALI", x = NombreCiudad)){
   hospitales_Seleccionados$direccion <- paste(str_to_title(hospitales_Seleccionados$direccion) , ", Cali Valle, COLOMBIA", sep = "")
 }else{
-  hospitales_Seleccionados$direccion <- paste(str_to_title(hospitales_Seleccionados$direccion) , ", Bogota, COLOMBIA", sep = "")
+  hospitales_Seleccionados$direccion <- paste(str_to_title(hospitales_Seleccionados$direccion) , ", Bogotá, COLOMBIA", sep = "")
 }
 
 # Ejemplo de Hospitales
@@ -59,11 +59,11 @@ set.seed(33)
 sample_n(hospitales_Seleccionados, 3)
 
 # HereR geocode
-#geocode("Calle 52 71d 37, Bogota, COLOMBIA")
+#geocode(c("AVENIDA CALLE 24 72B-94, Bogotá, COLOMBIA", "AVENIDA CALLE 24 72B 94, Bogotá, Colombia"))
 #geocode(c("TRANSVERSAL 60 115 58, Bogota, COLOMBIA", "TRANSVERSAL 3 49-00, Bogota, COLOMBIA"))
 
 # RUN geocode
-# hospitales_Seleccionados_geocoded <- geocode(hospitales_Seleccionados$direccion)
+#hospitales_Seleccionados_geocoded <- geocode(hospitales_Seleccionados$direccion)
 
 # WRITE
 #hospitales_Seleccionados_geocoded %>% write_rds(path = "hospitales_Seleccionados_geocoded_BOGOTA.RDS")
@@ -113,17 +113,17 @@ basicmap %>%
 # First, let’s define the extremes that we want the points to be in, ----
 # here the extremes of Switzerland. Those come from Wikipedia.
 
-# READ
+# READ mapa de ciudad
 if(grepl(pattern = "CALI", x = NombreCiudad)){
   ciudad <- shapefile(x = "data/mc_comunas_Cali/mc_comunas.shp")
-  ciudad_t <- spTransform(ciudad, CRSobj = "+init=epsg:4326")
+  ciudad <- spTransform(ciudad, CRSobj = "+init=epsg:4326")
 }else{
   ciudad <- shapefile(x = "data/locashp_BOGOTA/Loca.shp/")
   ciudad <- ciudad %>% subset(!(LocNombre %in% c("SUMAPAZ", "USME", "CIUDAD BOLIVAR")))
 }
 
 
-# XYMinMax <- bbox(ciudad_t)
+# XYMinMax <- bbox(ciudad)
 # 
 # latmin = XYMinMax[2,1]
 # latmax = XYMinMax[2,2]
@@ -139,8 +139,8 @@ hospitals_df <- hospitales_Seleccionados_geocoded %>%
   dplyr::select(id = nombre, lon, lat)
 
 # Puntos iniciales
-nmax <- 1000
-intervals <- round(nmax/50)
+nmax <- 10000
+intervals <- round(nmax/30)
 
 # Random Seed
 set.seed(455)
@@ -150,13 +150,19 @@ set.seed(455)
 # spatialP <- SpatialPoints(coords = t(bbox(xsp)))
 # pts = spsample(x = spatialP, type = "regular", n = nmax)
 
-pts = spsample(x = spTransform(ciudad, CRSobj = "+init=epsg:4326"), type = "random", n = nmax)
+pts = spsample(x = spTransform(ciudad, CRSobj = "+init=epsg:4326"), type = "regular", n = nmax)
 pts1 = coordinates(pts)
 
 randompts_df <- data.frame(id=1:nrow(pts1),
                            lon = pts1[,1],
                            lat = pts1[,2])
 
+
+basicmap %>% 
+  addCircleMarkers(data = randompts_df, lng = ~lon, lat = ~lat, radius = 1,
+                   #color = ~binpal(mintime), popup = ~mintime_str,
+                   group = "Driving times",
+                   opacity = 0.8)
 
 # Se parte los valores en grupos mas pequeñospara llamar al servidor osrm
 kFolds <- createFolds(y = randompts_df$id, k = intervals)
@@ -180,7 +186,7 @@ for (id in 1:length(kFolds)) {
   
   mindistances <- bind_rows(mindistances, mindistances_i)
   
-  print(str_c("run: ", id, ", request response time: ", rrt, "secs"))
+  print(str_c("run: ", id, ", request response time: ", rrt, "secs", " de un total de :", intervals))
 }
 
 # Let’s remove duplicates and save ---- 
@@ -194,13 +200,24 @@ mindistances <- mindistances %>%
 
 # Read de distancias medida en minutos ----
 
-#mindistances %>% write_rds("data/backupRDS/mindistances_cali.RDS")
-#mindistances <- read_rds(path = "data/backupRDS/mindistances_cali.RDS")
+# READ
+if(grepl(pattern = "CALI", x = NombreCiudad)){
+  #mindistances %>% write_rds("data/backupRDS/mindistances_cali.RDS")
+  #mindistances <- read_rds(path = "data/backupRDS/mindistances_cali.RDS")
+}else{
+  #mindistances %>% write_rds("data/backupRDS/mindistances_Bogota.RDS")
+  #mindistances <- read_rds(path = "data/backupRDS/mindistances_Bogogta.RDS")
+}
 
-mindistances <- mindistances %>% distinct() %>% filter(mintime<30)
-mindistances$mintime <- mindistances$mintime* ScaleFunction(mindistances$mintime)
-mindistances$mintime_str <- as.character(mindistances$mintime)
-mindistances <- mindistances %>% filter(mintime>=1)
+
+if(F){
+  mindistances <- mindistances %>% distinct() %>% filter(mintime<60)
+  #mindistances$mintime <- mindistances$mintime* ScaleFunction(mindistances$mintime)
+  
+  mindistances$mintime_str <- as.character(mindistances$mintime)
+  mindistances <- mindistances %>% filter(mintime>=1)
+}
+
 
 #test <- data.frame(x = mindistances$mintime, y = ScaleFunction(mindistances$mintime))
 
@@ -222,22 +239,22 @@ basicmap %>%
             title = "Time in min to the closest hospital", position = "bottomright") %>% 
   addLayersControl(overlayGroups = c("Hospitals", "Driving times")) %>% 
   hideGroup("Hospitals")
-# addPolygons(data = ciudad_t, group = "Comunas", color = "black", opacity = 1, weight = 1, dashArray = "3",
-#             popup = ciudad_t$nombre,
+# addPolygons(data = ciudad, group = "Comunas", color = "black", opacity = 1, weight = 1, dashArray = "3",
+#             popup = ciudad$nombre,
 #             fillOpacity = 0.3, fillColor = "red", labelOptions = labelOptions(direction = "none"))
 
 
 # The gridRes argument defines the raster resolution.
 # A higher value will result in a more pixelated raster,
 # a lower value will lead to very long computation times.
-minraster <- interpolateSurface(data = mindistances, gridRes = 30, idp = 0)
+minraster <- interpolateSurface(data = mindistances, gridRes = 20, idp = 0, nmax = 10)
 
-minraster_shaped <- mask(minraster$nn, spTransform(ciudad_t, CRSobj = "+init=epsg:3857"))
+minraster_shaped <- mask(minraster$nn, spTransform(ciudad, CRSobj = "+init=epsg:3857"))
 
 binpal <- colorBin(palette = c("navy", "orange"), domain = 0:max(mindistances["mintime"]), bins = 15, na.color = NA)
 
 mapa <- basicmap %>% 
-  addRasterImage(minraster_shaped, group = "Tiempo en vehículo", opacity =0.9,
+  addRasterImage(minraster_shaped, group = "Tiempo en vehículo", opacity =0.8,
                  colors = binpal) %>% 
   
   addLayersControl(overlayGroups = c("Unidades de atención", "Tiempo en vehículo")) %>%
@@ -246,8 +263,10 @@ mapa <- basicmap %>%
             title = "Area de influencia por cercanía en tiempo") %>%
   
   hideGroup("Hospitales") %>%
-  addPolygons(data = ciudad_t, group = "Comunas", color = "black", opacity = 0.5, weight = 1, dashArray = "3",
-              popup = ciudad_t$nombre,
+  #addPolygons(data = ciudad, group = "Comunas", color = "black", opacity = 0.5, weight = 1, dashArray = "3",
+  addPolygons(data = ciudad, group = "Localidad", color = "black", opacity = 1, weight = 1, dashArray = "3",
+              #popup = ciudad$nombre,
+              popup = ciudad$LocNombre,
               #fillOpacity = 0.3, fillColor = "red",
               labelOptions = labelOptions(direction = "none"),
               highlight = highlightOptions(
@@ -259,8 +278,13 @@ mapa <- basicmap %>%
                 bringToFront = TRUE))
 mapa
 
+# READ
+if(grepl(pattern = "CALI", x = NombreCiudad)){
+  saveWidget(mapa, file="CoberturaHospitalaria_CALI.html")
+}else{
+  saveWidget(mapa, file="CoberturaHospitalaria_BOGOTA.html")
+}
 
-saveWidget(mapa, file="CoberturaHospitalaria_CALI.html")
 
 
 

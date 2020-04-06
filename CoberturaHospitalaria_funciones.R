@@ -17,7 +17,7 @@ library(rgdal)
 #library(sp)
 
 # Interpolation ----
-interpolateSurface <- function(data, gridRes = 500, idp = 1){
+interpolateSurface <- function(data, gridRes = 500, idp = 1, nmax=50){
   
   # Make new dataset, that will be spatial - sp:: class
   data_sp <- data %>% as.data.frame()
@@ -44,7 +44,7 @@ interpolateSurface <- function(data, gridRes = 500, idp = 1){
   crs(r.raster) <- crs("+init=epsg:3857") # set CRS
   gs <- gstat(formula = mintime~1, 
               locations = data_sp_mp, 
-              nmax = 100, 
+              nmax = nmax, 
               set = list(idp = idp))
   nn <- interpolate(r.raster, gs)
   
