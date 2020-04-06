@@ -211,7 +211,7 @@ if(grepl(pattern = "CALI", x = NombreCiudad)){
 
 
 if(F){
-  mindistances <- mindistances %>% distinct() %>% filter(mintime<60)
+  mindistances <- mindistances %>% distinct() %>% filter(mintime<30)
   #mindistances$mintime <- mindistances$mintime* ScaleFunction(mindistances$mintime)
   
   mindistances$mintime_str <- as.character(mindistances$mintime)
@@ -247,7 +247,7 @@ basicmap %>%
 # The gridRes argument defines the raster resolution.
 # A higher value will result in a more pixelated raster,
 # a lower value will lead to very long computation times.
-minraster <- interpolateSurface(data = mindistances, gridRes = 20, idp = 0, nmax = 10)
+minraster <- interpolateSurface(data = mindistances, gridRes = 20, idp = 0, nmax = 5)
 
 minraster_shaped <- mask(minraster$nn, spTransform(ciudad, CRSobj = "+init=epsg:3857"))
 
@@ -267,12 +267,12 @@ mapa <- basicmap %>%
   addPolygons(data = ciudad, group = "Localidad", color = "black", opacity = 1, weight = 1, dashArray = "3",
               #popup = ciudad$nombre,
               popup = ciudad$LocNombre,
-              #fillOpacity = 0.3, fillColor = "red",
+              fillOpacity = 0.0, fillColor = "red",
               labelOptions = labelOptions(direction = "none"),
               highlight = highlightOptions(
                 sendToBack = T,
                 weight = 1,
-                color = NA,
+                color = "red",
                 dashArray = "",
                 fillOpacity = 0.0,
                 bringToFront = TRUE))
